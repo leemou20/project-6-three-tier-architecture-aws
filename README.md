@@ -1,101 +1,152 @@
-## Three-Tier Web Architecture: Step-by-Step Process
 
-# Tier Architecture explanation
+# Hello World Three-Tier Application
 
-- **Web Server**: This is the front part of a web application that displays the website to users. It handles how the site looks and interacts with users, like showing product pages or allowing people to sign up.
+This repository contains a simple "Hello World" application built using a three-tier architecture. The application demonstrates the fundamental concepts of separating frontend, backend, and database components in a web application.
 
-- **Application Server**: This middle part manages the business logic and processes user actions. For example, it checks the inventory to see if a product is in stock or updates a user's account details.
+## Architecture Overview
 
-- **Database Server**: This is the back-end part that stores all the data for the application. It uses databases like MySQL or PostgreSQL to keep track of information.
+![alt text](aws-three-tier-architecture.png)
 
-Looking for more videos on AWS and DevOps follow me on youtube here [![YouTube Channel](https://img.shields.io/badge/YouTube-Channel-red?logo=youtube&style=flat-square)](https://www.youtube.com/@avizway)
+The application follows the classic three-tier architecture:
 
+1. **Frontend Tier (Presentation Layer)**
+   - HTML/CSS/JavaScript
+   - Served by NGINX web servers
+   - Handles user interface and interactions
 
+2. **Backend Tier (Application Layer)**
+   - PHP API
+   - Processes business logic
+   - Communicates with database
+   - Serves data to frontend
 
-![Three-Tier Architecture](https://avinash.s3.amazonaws.com/3tier.png)
+3. **Database Tier (Data Layer)**
+   - MySQL database
+   - Stores application data
+   - Provides data persistence
 
+## Features
 
-### Overview
-In this architecture, we have three main layers:
-1. **Web Tier**: Handles client requests and serves the front-end website.
-2. **Application Tier**: Processes API requests and handles the business logic.
-3. **Database Tier**: Manages data storage and retrieval.
+- Display messages from the database
+- Add new messages to the database
+- Basic responsive design
 
-### Components explanation
+## AWS Infrastructure Components
 
-#### 1. External Load Balancer (Public-Facing Application Load Balancer)
-- **Role**: This acts as the entry point for all client traffic.
-- **Functionality**:
-  - Distributes incoming client requests to the web tier EC2 instances.
-  - Ensures even distribution of traffic for better performance and reliability.
-  - Performs health checks to ensure only healthy instances receive traffic.
+When deployed on AWS, the infrastructure includes:
 
-#### 2. Web Tier
-- **Role**: Serves the front-end of the application and redirects API calls.
-- **Components**:
-  - **Nginx Webservers**: Running on EC2 instances.
-  - **React.js Website**: The front-end application served by Nginx.
-- **Functionality**:
-  - **Serving the Website**: Nginx serves the static files for the React.js application to the clients.
-  - **Redirecting API Calls**: Nginx is configured to route API requests to the internal-facing load balancer of the application tier.
+- **Web ALB**: Load balancer for distributing traffic to web servers
+- **NGINX Servers**: EC2 instances in an auto-scaling group
+- **App ALB**: Load balancer for distributing traffic to application servers
+- **PHP Servers**: EC2 instances in an auto-scaling group
+- **RDS MySQL**: Managed relational database service
 
-#### 3. Internal Load Balancer (Application Tier Load Balancer)
-- **Role**: Manages traffic between the web tier and the application tier.
-- **Functionality**:
-  - Receives API requests from the web tier.
-  - Distributes these requests to the appropriate EC2 instances in the application tier.
-  - Ensures high availability and load balancing within the application tier.
+## Directory Structure
 
-#### 4. Application Tier
-- **Role**: Handles the application logic and processes API requests.
-- **Components**:
-  - **Node.js Application**: Running on EC2 instances.
-- **Functionality**:
-  - **Processing Requests**: The Node.js application receives API requests, performs necessary computations or data manipulations.
-  - **Database Interaction**: Interacts with the Aurora MySQL database to fetch or update data.
-  - **Returning Responses**: Sends the processed data back to the web tier via the internal load balancer.
+```
+three-tier-architecture-aws/
+├── frontend/
+│   ├── index.html            # Main HTML file
+│   ├── styles.css            # CSS styles
+│
+├── backend/
+│   └── api/                  # API endpoints
+│       ├── get_messages.php  # API to retrieve messages
+│       ├── save_message.php  # API to save new messages
+│       └── db_connection.php # Database connection utility
+│
+├── database/
+│   └── database_setup.sql    # SQL schema and initial data
+│
+└── infrastructure/           # AWS infrastructure configurations
+    ├── frontend_server.md     # Frontend server configurations
+    ├── backend_server.md     # Backend server configurations
+    ├── nginx_config     # Nginx server configurations
+```
 
-#### 5. Database Tier (Aurora MySQL Multi-AZ Database)
-- **Role**: Provides reliable and scalable data storage.
-- **Functionality**:
-  - **Data Storage**: Stores all the application data in a structured format.
-  - **Multi-AZ Setup**: Ensures high availability and fault tolerance by replicating data across multiple availability zones.
-  - **Data Retrieval and Manipulation**: Handles queries and transactions from the application tier to manage the data.
+## Local Setup
 
-### Additional Components
+### Prerequisites
 
-#### Load Balancing
-- **Purpose**: Distributes incoming traffic evenly across multiple instances to prevent any single instance from becoming a bottleneck.
-- **Implementation**:
-  - **Web Tier**: The external load balancer distributes traffic to web servers.
-  - **Application Tier**: The internal load balancer distributes API requests to application servers.
+- Web server with PHP support (XAMPP, WAMP, MAMP, etc.)
+- MySQL database
 
-#### Health Checks
-- **Purpose**: Continuously monitors the health of instances to ensure only healthy instances receive traffic.
-- **Implementation**:
-  - **Web Tier**: Health checks by the external load balancer to ensure web servers are responsive.
-  - **Application Tier**: Health checks by the internal load balancer to ensure application servers are operational.
+### Steps
 
-#### Auto Scaling Groups
-- **Purpose**: Automatically adjusts the number of running instances based on traffic load to maintain performance and cost efficiency.
-- **Implementation**:
-  - **Web Tier**: Auto-scaling based on metrics like CPU usage or request count to add or remove web server instances.
-  - **Application Tier**: Auto-scaling based on similar metrics to adjust the number of application server instances.
+1. Create VPC
+2. Create subnets
+    1. Web Public 1a, 1b, 1c
+    2. Web Private 1a, 1b, 1c
+    3. App Private 1a, 1b, 1c
+    4. Db Private 1a, 1b, 1c
+3. Create route tables
+    1. Web Public
+    2. Web Private 1a, 1b, 1c
+    3. App Private 1a, 1b, 1c
+    4. Db Private 1a, 1b, 1c
+4. Associate route tables with subnet
+5. Create internet Gateway (IGW)
+    1. Attach it to VPC
+6. Create NAT gateway (NATGW) in web public subnet
+7. Add IGW and NAT routes in route table
+    1. Public -> IGW
+    2. Private -> NAT
+8. Create security groups
+    1. Frontend ALB
+    2. Frontend Servers
+    3. Backend ALB
+    4. Backend Servers
+    5. Db Private Servers
+9. Create database subnet group
+10. Create database server
+11. Create Frontend ALB
+    1. Create Frontend ALB target group 
+12. Create Backend ALB
+    1. Create Backend ALB target group
+13. Create Frontend Server AMI
+    1. Install Nginx
+    2. Install Git
+14. Create Backend Server AMI
+    1. Install PHP, MySQL, Apache
+    2. Install Git
+    3. Run the database script
+15. Create the Launch Template for Frontend Server
+16. Create the Launch Template for Backend Server
+17. Create the Auto Scaling Group for Frontend Server
+18. Create the Auto Scaling Group for Backend Server
 
-#### AWS Certificate Manager (ACM)
-- **Purpose**: Manages SSL/TLS certificates to secure data in transit between clients and your application, ensuring encrypted communication.
-- **Implementation**:
-  - **Certificate Provisioning**: ACM provides and manages SSL/TLS certificates for your domain `learnaws.co.in`.
-  - **Certificate Deployment**: The ACM certificates are associated with the public-facing Application Load Balancer (ALB) to enable HTTPS traffic.
-  - **Automatic Renewal**: ACM automatically renews certificates before they expire, ensuring uninterrupted secure connections.
+## Development
 
-#### Amazon Route 53
-- **Purpose**: Manages DNS records and directs user traffic to the appropriate AWS resources, optimizing for performance and reliability.
-- **Implementation**:
-  - **DNS Management**: Route 53 handles DNS queries for the domain `learnaws.co.in`, translating it into IP addresses for your Application Load Balancer.
-  - **Traffic Routing**: Route 53 directs client requests to the public-facing Application Load Balancer based on DNS records.
-  - **Health Checks and Failover**: Optionally, Route 53 performs health checks on your endpoints and can automatically reroute traffic to healthy resources if needed.
+### Frontend Development
 
+The frontend is built with plain HTML, CSS, and JavaScript. It uses the Fetch API to communicate with the backend.
 
-### Summary
-This architecture ensures high availability, scalability, and reliability by distributing the load, monitoring instance health, and scaling resources dynamically. The web tier serves the front-end and routes API calls, the application tier handles business logic and interacts with the database, and the database tier provides robust data storage and retrieval.
+To make changes to the frontend:
+1. Modify the HTML/CSS/JavaScript files in the `frontend` directory
+2. Test the changes locally
+
+### Backend Development
+
+The PHP backend provides simple API endpoints for retrieving and saving messages.
+
+To make changes to the backend:
+1. Modify the PHP files in the `backend/api` directory
+2. Test the changes locally
+
+## Security Considerations
+
+This is a demo application and lacks several security features that would be necessary in a production environment:
+
+- Input validation and sanitization
+- Authentication and authorization
+- HTTPS encryption
+- Protection against SQL injection (although PDO with prepared statements is used)
+- CORS configuration
+
+## License
+
+This project is released under the MIT License.
+
+## Acknowledgements
+
+This sample application was created as a demonstration of AWS three-tier architecture principles.
