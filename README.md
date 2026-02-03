@@ -5,7 +5,8 @@ This repository contains a simple "Hello World" application built using a three-
 
 ## Architecture Overview
 
-![alt text](aws-three-tier-architecture.png)
+<img width="3519" height="2684" alt="aws-three-tier-architecture" src="https://github.com/user-attachments/assets/3b92e693-fb54-429f-9388-5ffe7cf19a8e" />
+
 
 The application follows the classic three-tier architecture:
 
@@ -143,10 +144,3 @@ This is a demo application and lacks several security features that would be nec
 - Protection against SQL injection (although PDO with prepared statements is used)
 - CORS configuration
 
-## License
-
-This project is released under the MIT License.
-
-## Acknowledgements
-
-This sample application was created as a demonstration of AWS three-tier architecture principles.
